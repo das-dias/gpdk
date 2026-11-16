@@ -90,6 +90,9 @@ max = 1.6
 min = 1.5
 num = 1000
 
+[tool.gdsfactoryplus.sidebar]
+default_libraries = ["doroutes", "gpdk"]
+
 [tool.mypy]
 python_version = "3.12"
 
@@ -161,3 +164,13 @@ filename = "CHANGELOG.md"
 template = ".changelog.d/changelog_template.jinja"
 title_format = "## {version}"
 underlines = ""
+
+[tool.uv]
+constraint-dependencies = [
+    # Managed by GDSFactory+: runtime SDK compatibility
+    "gdsfactoryplus>=2.2,<2.4",
+]
+required-environments = [
+    # Managed by GDSFactory+: required interpreter targets (linux-x86_64)
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
