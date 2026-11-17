@@ -1,4 +1,5 @@
-"""Parasitic extraction (gf-pex) rules for the generic PDK.
+"""Parasitic extraction (gfpex) rules for the generic PDK.
 
-``gfpexrules`` needs ``gf_pex``; it is not imported here so ``gpdk`` stays importable without it.
+The default rules live in ``gpdk.pex.rules`` (``DEFAULT_PEX_RULES_CONFIG``); they need the optional
+``gfpex`` package, so nothing is imported here and ``gpdk`` stays importable without it.
 """

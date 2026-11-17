@@ -10,6 +10,10 @@ dev: install
 test:
 	uv run pytest -s tests
 
+# gfpex is optional and not locked; --no-sync keeps the gfpex / kfnetlist installed by hand.
+test-pex:
+	uv run --no-sync pytest tests/gfpex/ -v
+
 test-notebooks:
 	@fail=0; \
 	for notebook in $$(find notebooks -name "*.ipynb" | sort); do \
@@ -48,4 +52,4 @@ build:
 update-pre:
 	pre-commit autoupdate
 
-.PHONY: install dev test test-force test-notebooks cells-check cells-regen docs build update-pre
+.PHONY: install dev test test-pex test-force test-notebooks cells-check cells-regen docs build update-pre

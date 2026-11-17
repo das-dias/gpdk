@@ -1,7 +1,11 @@
-"""gf-pex parasitic extraction rules (techfile) for the generic PDK.
+"""Default gfpex parasitic-extraction rules for the generic PDK (gpdk).
 
-Mirrors the gf-pex gf180mcuD template (``kpex_schema/gen_tech_pb/pdk/gf180mcuD.py``):
-layers -> LVS computed layers -> process stack -> parasitics -> ``build_tech()``.
+Usage::
+
+    from gpdk.pex.rules import DEFAULT_PEX_RULES_CONFIG
+
+Mirrors the gf-pex gf180mcuD template (``gfpexconfg/gf180mcuD.py``):
+layers -> LVS computed layers -> process stack -> parasitics.
 
 GDS layers and stack heights come from ``gpdk.layer_map.LAYER`` and
 ``gpdk.layer_stack.LAYER_STACK`` so the rules never drift from the PDK.
@@ -12,25 +16,25 @@ gpdk is generic, so there is no foundry parasitics data:
   ``GF180_TEMPLATE_LAYER`` (M1 -> Metal1, M2 -> Metal2, M3 -> Metal3, POLY -> Poly2,
   HEATER -> Metal1 (same height), NPP / PPP -> COMP)
 - layers / pairs with no gf180 counterpart (heater / MIM / doped-slab sheet R, MIM and
-  slab capacitances): physics-based estimates, marked ``estimate``
+  slab capacitances): physics-based estimates (DERIVED)
 
-Units follow the gf-pex techfile: resistance in mΩ (per square / per via),
-capacitance in aF/µm² (area) and aF/µm (length), heights in µm.
+Provenance tags:
+    FOUNDRY <source>   value stated by a foundry document (none: gpdk is generic)
+    DERIVED <formula>  computed from PDK values (C = 8.854·k/t aF/µm², Rs = ρ/t, ...)
+    ASSUMED <source>   borrowed from the closest open PDK (gf-pex gfpexconfg/gf180mcuD.py:line) or literature
+    PALACE-FIT         fitted with gf-pex benchmarks/palace_benchmark.py (pending: TODO(palace))
 
-Usage::
-
-    from gpdk.pex.gfpexrules import build_tech
-
-    build_tech().save("gpdk_tech.pb.json")
+Units (gfpex techfile): µm; sheet resistance mΩ/sq; contact/via resistance mΩ/cut; area, overlap and substrate
+capacitance aF/µm²; perimeter and side-overlap aF/µm; sidewall in Magic form, `capacitance` aF/µm at a
+1 µm reference spacing, C = capacitance·L/(s + offset) (a parallel plate gives 8.854·k·t with offset 0).
 """
 
 from __future__ import annotations
 
 from itertools import combinations
-from pathlib import Path
 from typing import NamedTuple
 
-from gf_pex.techfile import (
+from gfpex.gfpex import (
     CapacitanceInfo,
     ComputedLayerInfo,
     ComputedLayerKind,
@@ -62,6 +66,8 @@ from gpdk.cells.resistor import SHEET_RESISTANCE
 from gpdk.layer_map import LAYER
 from gpdk.layer_stack import DOPING, LAYER_STACK, LayerStackParameters
 
+__all__ = ["DEFAULT_PEX_RULES_CONFIG"]
+
 DIFF = LayerPurpose.PURPOSE_DIFF
 NWELL = LayerPurpose.PURPOSE_NWELL
 NIMP = LayerPurpose.PURPOSE_N_IMPLANT
@@ -79,18 +85,18 @@ UM_TO_CM = 1e-4
 UM_TO_M = 1e-6
 ELEMENTARY_CHARGE_C = 1.602e-19
 VACUUM_PERMITTIVITY_AF_PER_UM = 8.854
-OXIDE_K = 3.9
-AIR_K = 1.0
+OXIDE_K = 3.9  # ASSUMED literature SiO2
+AIR_K = 1.0  # ASSUMED literature
 
 # gf-pex heights start at the substrate top; gpdk's z = 0 is the BOX top (silicon bottom).
 Z_SILICON_UM = STACK.box_thickness
 
-# gpdk.cells.vias defaults (via / via1 / via2): 0.7 µm cut, 2 µm pitch, 1 µm enclosure.
+# gpdk.cells.vias defaults (via / via1 / via2), PDK values: 0.7 µm cut, 2 µm pitch, 1 µm enclosure.
 VIA_SIZE_UM = 0.7
 VIA_PITCH_UM = 2.0
 VIA_ENCLOSURE_UM = 1.0
 
-# gf180mcuD template values (gf-pex kpex_schema/gen_tech_pb/pdk/gf180mcuD.py).
+# ASSUMED gf180mcuD template values (gf-pex gfpexconfg/gf180mcuD.py).
 GF180_TEMPLATE_LAYER = {
     "POLY": "Poly2",
     "M1": "Metal1",
@@ -100,18 +106,18 @@ GF180_TEMPLATE_LAYER = {
     "NPP": "COMP",
     "PPP": "COMP",
 }
-# contact resistance (mΩ/contact): M1-Nplus, M1-Pplus, M1-Poly
+# contact resistance (mΩ/contact): M1-Nplus, M1-Pplus, M1-Poly (gf180mcuD.py:849-855)
 GF180_CONTACT_RESISTANCE = {"NPP": 6300, "PPP": 5200, "POLY": 5900}
-# via resistance (mΩ/via): Via1 ... Via5
+# via resistance (mΩ/via): Via1 ... Via5 (gf180mcuD.py:860-864)
 GF180_VIA_RESISTANCE = 4500
-# substrate capacitance (aF/µm² area, aF/µm perimeter)
+# substrate capacitance (aF/µm² area, aF/µm perimeter) (gf180mcuD.py:871-874)
 GF180_SUBSTRATE_CAPACITANCE = {
     "Poly2": (110.67, 50.72),
     "Metal1": (29.304, 39.431),
     "Metal2": (15.016, 33.298),
     "Metal3": (10.094, 30.021),
 }
-# overlap capacitance (aF/µm²), (top, bottom)
+# overlap capacitance (aF/µm²), (top, bottom) (gf180mcuD.py:885-908)
 GF180_OVERLAP_CAPACITANCE = {
     ("Metal1", "COMP"): 30.502,
     ("Metal1", "Poly2"): 51.434,
@@ -123,14 +129,14 @@ GF180_OVERLAP_CAPACITANCE = {
     ("Metal3", "Metal1"): 20.238,
     ("Metal3", "Metal2"): 59.027,
 }
-# sidewall capacitance (aF/µm, offset µm)
+# sidewall capacitance (aF/µm, offset µm) (gf180mcuD.py:924-927)
 GF180_SIDEWALL_CAPACITANCE = {
     "Poly2": (11.098, -0.082),
     "Metal1": (40.512, -0.053),
     "Metal2": (46.736, 0.289),
     "Metal3": (70.675, 0.534),
 }
-# sidewall-overlap capacitance (aF/µm), (in, out)
+# sidewall-overlap capacitance (aF/µm), (in, out) (gf180mcuD.py:939-956)
 GF180_SIDEOVERLAP_CAPACITANCE = {
     ("Metal1", "COMP"): 43.406,
     ("Metal1", "Poly2"): 46.700,
@@ -149,11 +155,13 @@ GF180_SIDEOVERLAP_CAPACITANCE = {
     ("Metal2", "Metal3"): 36.626,
 }
 
-# Estimates, only where gf180 has no counterpart.
-TIN_RESISTIVITY_OHM_M = 1.0e-6  # TiN heater / MIM plate film (~100 µΩ·cm)
+# Estimates, only where gf180 has no counterpart (feed DERIVED values below).
+TIN_RESISTIVITY_OHM_M = (
+    1.0e-6  # ASSUMED literature: TiN heater / MIM plate film (~100 µΩ·cm)
+)
 # Majority-carrier mobility at ~1e20 cm^-3 (cm²/Vs), for the doped-slab sheet resistance.
-HEAVY_DOPING_MOBILITY_CM2_PER_VS = {"NPP": 90.0, "PPP": 50.0}
-# Sakurai-Tamaru wire-over-plane fringe: C/L = eps * 2.80 * (T/H)^0.222 for both edges.
+HEAVY_DOPING_MOBILITY_CM2_PER_VS = {"NPP": 90.0, "PPP": 50.0}  # ASSUMED literature
+# ASSUMED literature, Sakurai-Tamaru wire-over-plane fringe: C/L = eps * 2.80 * (T/H)^0.222 for both edges.
 SAKURAI_FRINGE_COEFFICIENT_PER_EDGE = 2.80 / 2
 SAKURAI_FRINGE_EXPONENT = 0.222
 
@@ -210,7 +218,7 @@ def _gds_pair(gds: tuple[int, int]) -> GDSPair:
     return GDSPair(layer=gds[0], datatype=gds[1])
 
 
-def build_layers(tech: Techfile) -> None:
+def _build_layers(tech: Techfile) -> None:
     """Drawn gpdk layers that carry current or define wells / implants."""
     drawn_layers = (
         (NWELL, "NWELL", LAYER.NWELL, "N-well region"),
@@ -238,7 +246,7 @@ def build_layers(tech: Techfile) -> None:
         )
 
 
-def build_lvs_computed_layers(tech: Techfile) -> None:
+def _build_lvs_computed_layers(tech: Techfile) -> None:
     """Connectivity names used in the stack; contacts map back to their drawn cut layer."""
     for conductor in CONDUCTORS.values():
         tech.lvs_computed_layers.append(
@@ -280,7 +288,7 @@ def _make_contact(cut_name: str, below: str, above: str) -> Contact:
     )
 
 
-def build_process_stack_info(tech: Techfile) -> None:
+def _build_process_stack(tech: Techfile) -> None:
     """SOI stack: Si substrate, BOX, doped slab, poly, M1 / heater, M2, MIM, M3, oxide."""
     tech.process_stack = ProcessStackInfo()
     layers = tech.process_stack.layers
@@ -350,7 +358,7 @@ def build_process_stack_info(tech: Techfile) -> None:
     )
 
 
-def get_doped_slab_sheet_resistance_milliohm(name: str) -> float:
+def _get_doped_slab_sheet_resistance_milliohm(name: str) -> float:
     """R□ = 1 / (q N µ t) for the uniformly doped slab (DOPING from gpdk.layer_stack)."""
     concentration_per_cm3 = next(
         concentration
@@ -389,10 +397,10 @@ def _get_tin_sheet_resistance_milliohm(name: str) -> float:
     )
 
 
-def build_process_parasitics_info(tech: Techfile) -> None:
+def _build_parasitics(tech: Techfile) -> None:
     """Sheet / via / contact R and area / edge capacitances for the gpdk stack."""
     tech.process_parasitics = ProcessParasiticsInfo(
-        side_halo=8.0,
+        side_halo=8.0,  # ASSUMED gf180mcuD.py:830
         resistance=ResistanceInfo(),
         capacitance=CapacitanceInfo(),
     )
@@ -405,10 +413,10 @@ def build_process_parasitics_info(tech: Techfile) -> None:
         "M1": SHEET_RESISTANCE["M1"] * OHM_TO_MILLIOHM,
         "M2": SHEET_RESISTANCE["M2"] * OHM_TO_MILLIOHM,
         "M3": SHEET_RESISTANCE["M3"] * OHM_TO_MILLIOHM,
-        "HEATER": _get_tin_sheet_resistance_milliohm("HEATER"),  # estimate
-        "MIM": _get_tin_sheet_resistance_milliohm("MIM"),  # estimate
-        "NPP": get_doped_slab_sheet_resistance_milliohm("NPP"),  # estimate
-        "PPP": get_doped_slab_sheet_resistance_milliohm("PPP"),  # estimate
+        "HEATER": _get_tin_sheet_resistance_milliohm("HEATER"),  # DERIVED Rs = ρ/t
+        "MIM": _get_tin_sheet_resistance_milliohm("MIM"),  # DERIVED Rs = ρ/t
+        "NPP": _get_doped_slab_sheet_resistance_milliohm("NPP"),  # DERIVED Rs = ρ/t
+        "PPP": _get_doped_slab_sheet_resistance_milliohm("PPP"),  # DERIVED Rs = ρ/t
     }
     for layer_name, sheet_milliohm in sheet_resistance_milliohm.items():
         resistance.layers.append(
@@ -434,6 +442,7 @@ def build_process_parasitics_info(tech: Techfile) -> None:
         )
 
     # estimates below use oxide everywhere (k = 3.9): parallel plate + Sakurai-Tamaru fringe
+    # TODO(palace): replace gf180 template and estimated fringe / sidewall / side-overlap values with a Palace fit
     permittivity = _get_permittivity_af_per_um()
 
     # substrate capacitance (aF/µm² area, aF/µm perimeter)
@@ -500,17 +509,14 @@ def build_process_parasitics_info(tech: Techfile) -> None:
         )
 
 
-def build_tech() -> Techfile:
-    """Assemble the gpdk gf-pex techfile."""
+def _build() -> Techfile:
+    """Assemble the gpdk gfpex techfile."""
     tech = Techfile(name="gpdk")
-    build_layers(tech)
-    build_lvs_computed_layers(tech)
-    build_process_stack_info(tech)
-    build_process_parasitics_info(tech)
+    _build_layers(tech)
+    _build_lvs_computed_layers(tech)
+    _build_process_stack(tech)
+    _build_parasitics(tech)
     return tech
 
 
-if __name__ == "__main__":
-    output_path = Path(__file__).with_name("gpdk_tech.pb.json")
-    build_tech().save(output_path)
-    print(f"wrote {output_path}")
+DEFAULT_PEX_RULES_CONFIG = _build()
