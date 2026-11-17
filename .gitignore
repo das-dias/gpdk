@@ -12,4 +12,12 @@ test_diffs/
 tests/gds_run/
 docs/_build/
 docs/.cache/
+docs/cells_images/
 .DS_Store
+
+# Files the notebooks write next to themselves when executed (make test-notebooks)
+notebooks/**/*.msh
+notebooks/**/demo.gds
+notebooks/**/demo.oas
+notebooks/**/*.stl
+notebooks/gdsfactory-training/sample_reticle.csv
