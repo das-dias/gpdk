@@ -10,6 +10,9 @@ from gpdk.pex.rules import DEFAULT_PEX_RULES_CONFIG  # a gfpex.gfpex.Techfile
 
 gfpex is an optional, private dependency; `gpdk` itself imports without it.
 
+gfpex is private: installing it needs read access to `doplaydo/gf-pex`, git authenticated for github.com
+(for example `gh auth login && gh auth setup-git`) and a Rust toolchain to build it.
+
 ## Provenance tags
 
 Every number in `rules.py` carries one of these tags:
