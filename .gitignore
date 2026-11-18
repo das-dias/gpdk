@@ -21,3 +21,4 @@ notebooks/**/demo.gds
 notebooks/**/demo.oas
 notebooks/**/*.stl
 notebooks/gdsfactory-training/sample_reticle.csv
+.vscode/

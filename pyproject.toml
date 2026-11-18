@@ -14,8 +14,6 @@ dev = [
 authors = [{ name = "gdsfactory community", email = "contact@gdsfactory.com" }]
 classifiers = [
   "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3.14",
   "Operating System :: OS Independent"
 ]
 dependencies = [
@@ -31,7 +29,7 @@ keywords = ["eda", "photonics", "python", "pdk"]
 license = { file = "LICENSE" }
 name = "gpdk"
 readme = "README.md"
-requires-python = ">=3.12,<3.15"
+requires-python = "~=3.12.0"
 version = "0.0.1"
 
 [project.optional-dependencies]
@@ -85,6 +83,12 @@ timeout = 300
 
 [tool.gdsfactoryplus.pdk]
 name = "gpdk"
+
+[tool.gdsfactoryplus.project]
+identifier = "gpdk"
+
+[tool.gdsfactoryplus.sidebar]
+default_libraries = ["doroutes", "gpdk"]
 
 [tool.gdsfactoryplus.sim.wls]
 max = 1.6
@@ -162,3 +166,14 @@ filename = "CHANGELOG.md"
 template = ".changelog.d/changelog_template.jinja"
 title_format = "## {version}"
 underlines = ""
+
+[tool.uv]  # nosemgrep: uv-missing-dependency-cooldown -- exclude-newer is set below; the rule stops scanning at the "[" in constraint-dependencies
+constraint-dependencies = [
+  # Managed by GDSFactory+: runtime SDK compatibility
+  "gdsfactoryplus>=2.2,<2.4"
+]
+exclude-newer = "7 days"
+required-environments = [
+  # Managed by GDSFactory+: required interpreter targets (linux-x86_64)
+  "sys_platform == 'linux' and platform_machine == 'x86_64'"
+]
