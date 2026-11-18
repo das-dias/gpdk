@@ -12,7 +12,7 @@ test:
 
 # gfpex is optional and not locked; --no-sync keeps the gfpex / kfnetlist installed by hand.
 test-pex:
-	uv run --no-sync pytest tests/gfpex/ -v
+	uv run --no-sync pytest tests/test_pex_gpdk.py -v
 
 test-notebooks:
 	@fail=0; \
