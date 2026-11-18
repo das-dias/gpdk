@@ -93,6 +93,9 @@ num = 1000
 [tool.gdsfactoryplus.sidebar]
 default_libraries = ["doroutes", "gpdk"]
 
+[tool.gdsfactoryplus.project]
+identifier = "gpdk"
+
 [tool.mypy]
 python_version = "3.12"
 
