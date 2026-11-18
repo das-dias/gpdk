@@ -167,7 +167,7 @@ template = ".changelog.d/changelog_template.jinja"
 title_format = "## {version}"
 underlines = ""
 
-[tool.uv]
+[tool.uv]  # nosemgrep: uv-missing-dependency-cooldown -- exclude-newer is set below; the rule stops scanning at the "[" in constraint-dependencies
 constraint-dependencies = [
   # Managed by GDSFactory+: runtime SDK compatibility
   "gdsfactoryplus>=2.2,<2.4"
