@@ -78,6 +78,7 @@ def test_metal_z_increases() -> None:
         s.metal_layer for s in CFG.process_stack.layers if s.metal_layer is not None
     ]
     z = [m.z for m in metals]
+    assert len(z) > 1
     assert z == sorted(z)
     # M1 and HEATER share a level by design; any metals on different levels must not overlap.
     for below, above in zip(metals, metals[1:]):
@@ -88,4 +89,6 @@ def test_metal_z_increases() -> None:
 def test_z_lookup_has_contacts() -> None:
     """The z lookup covers every contact."""
     lookup = CFG.build_layer_z_lookup()
-    assert {c.name for c in _contacts()} <= lookup.keys()
+    names = {c.name for c in _contacts()}
+    assert names
+    assert names <= lookup.keys()
