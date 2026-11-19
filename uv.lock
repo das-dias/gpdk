@@ -14,8 +14,14 @@ required-markers = [
 exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
 exclude-newer-span = "P7D"
 
+[options.exclude-newer-package]
+gsim = "2026-11-13T21:04:12Z"
+
 [manifest]
-constraints = [{ name = "gdsfactoryplus", specifier = ">=2.2,<2.4" }]
+constraints = [
+    { name = "gdsfactoryplus", specifier = ">=2.2,<2.4" },
+    { name = "gsim", specifier = ">=0.10.0" },
+]
 
 [[package]]
 name = "absl-py"
@@ -1005,7 +1011,7 @@ wheels = [
 
 [[package]]
 name = "gsim"
-version = "0.9.0"
+version = "0.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "gdsfactory" },
@@ -1024,9 +1030,9 @@ dependencies = [
     { name = "trame-vuetify" },
     { name = "vtk" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c7/d5/552227d32d38e05d01abdc5874c7c184193380ee277a52a498b814581210/gsim-0.9.0.tar.gz", hash = "sha256:56f5823a9a7f01b0fea24c065789d952c57ea980862e54f3d43fd7e837af5c5a", size = 777026, upload-time = "2026-11-07T05:51:19.279Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b0/c8/3364df04ef6d116720818767303dc92e098a642b61cab32aeaba2f463103/gsim-0.10.0.tar.gz", hash = "sha256:5366adead9f17c47ed05f602d82318e4948f7081848d04574660066ae318a44f", size = 843957, upload-time = "2026-11-13T21:04:11.319Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0d/ab/540f36067d460801643a096e1150f5f087b8892232d0e3bd5c8b3a7538b9/gsim-0.9.0-py3-none-any.whl", hash = "sha256:9ff42d517c87b26d48dd4f2918e557bf19a1cdaadb7e99006bb43f88a832a355", size = 838043, upload-time = "2026-11-07T05:51:17.417Z" },
+    { url = "https://files.pythonhosted.org/packages/75/6a/d92cbde8917a7b1b3386b182f320d92d2dec92cd30105b43045a861c6f22/gsim-0.10.0-py3-none-any.whl", hash = "sha256:4e5933d8f192c5679c4b334f8fead1159cd92f0e1015007bf7ea66c43c951cb6", size = 908633, upload-time = "2026-11-13T21:04:09.648Z" },
 ]
 
 [[package]]

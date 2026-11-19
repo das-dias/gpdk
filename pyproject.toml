@@ -170,10 +170,16 @@ underlines = ""
 [tool.uv]  # nosemgrep: uv-missing-dependency-cooldown -- exclude-newer is set below; the rule stops scanning at the "[" in constraint-dependencies
 constraint-dependencies = [
   # Managed by GDSFactory+: runtime SDK compatibility
-  "gdsfactoryplus>=2.2,<2.4"
+  "gdsfactoryplus>=2.2,<2.4",
+  "gsim>=0.10.0"
 ]
 exclude-newer = "7 days"
 required-environments = [
   # Managed by GDSFactory+: required interpreter targets (linux-x86_64)
   "sys_platform == 'linux' and platform_machine == 'x86_64'"
 ]
+
+[tool.uv.exclude-newer-package]
+# Admit only the published gsim 0.10.0 artifacts during the global cooldown.
+# Remove this override after 2026-11-20 21:04:12 UTC.
+gsim = "2026-11-13T21:04:12Z"
