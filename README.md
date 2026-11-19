@@ -22,3 +22,13 @@ standalone PDK.
 
 `gpdk/cells/` is generated from the pinned gdsfactory version and is not hand-edited.
 See `make cells-check` and `make cells-regen`.
+
+## Simulation materials
+
+The layer stack uses canonical material names (for example, `Si`, `SiO2`, and
+`SiN`). Use those names for explicit solver overrides. The index and Lumerical
+lookup dictionaries also accept the old `si`, `sio2`, and `sin` keys.
+
+The project silicon card used by gsim is valid from 1.357 to 11.04 µm. This is
+not an O-band material model. A material name in the stack does not guarantee
+that a matching optical model is available for that solver.

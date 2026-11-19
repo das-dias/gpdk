@@ -76,3 +76,11 @@ def test_material_registries_include_canonical_optical_tokens() -> None:
         SIMULATION_SETTINGS_LUMERICAL_FDTD.material_name_to_lumerical
     )
     assert SIMULATION_SETTINGS_LUMERICAL_FDTD.background_material == "SiO2"
+
+
+def test_legacy_optical_lookup_names_remain_supported() -> None:
+    """Preserve lookup by legacy names without changing the stack tokens."""
+    lumerical = SIMULATION_SETTINGS_LUMERICAL_FDTD.material_name_to_lumerical
+    for legacy, canonical in (("si", "Si"), ("sio2", "SiO2"), ("sin", "SiN")):
+        assert materials_index[legacy] is materials_index[canonical]
+        assert lumerical[legacy] == lumerical[canonical]

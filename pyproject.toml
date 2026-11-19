@@ -21,7 +21,7 @@ dependencies = [
   "gplugins[sax]~=2.1.0",
   "doroutes>=1.5,<1.6",
   "playdough~=0.5.2",
-  "pdk-schema==0.0.2",
+  "pdk-schema~=0.3.0",
   "pytz"
 ]
 description = "Generic PDK for gdsfactory"

@@ -8,11 +8,19 @@ import numpy as np
 import numpy.typing as npt
 from pydantic import BaseModel, ConfigDict
 
+_LEGACY_OPTICAL_NAMES = {"si": "Si", "sio2": "SiO2", "sin": "SiN"}
+
 material_name_to_lumerical_default = {
     "Si": "Si (Silicon) - Palik",
     "SiO2": "SiO2 (Glass) - Palik",
     "SiN": "Si3N4 (Silicon Nitride) - Phillip",
 }
+material_name_to_lumerical_default.update(
+    {
+        legacy: material_name_to_lumerical_default[canonical]
+        for legacy, canonical in _LEGACY_OPTICAL_NAMES.items()
+    }
+)
 
 
 class SimulationSettingsLumericalFdtd(BaseModel):
@@ -163,3 +171,10 @@ sin = partial(
 
 
 materials_index = {"Si": si, "SiO2": sio2, "SiN": sin}
+# Consumers of the public index (e.g. gplugins MEOW) still pass legacy names.
+materials_index.update(
+    {
+        legacy: materials_index[canonical]
+        for legacy, canonical in _LEGACY_OPTICAL_NAMES.items()
+    }
+)
