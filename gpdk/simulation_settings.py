@@ -9,9 +9,9 @@ import numpy.typing as npt
 from pydantic import BaseModel, ConfigDict
 
 material_name_to_lumerical_default = {
-    "si": "Si (Silicon) - Palik",
-    "sio2": "SiO2 (Glass) - Palik",
-    "sin": "Si3N4 (Silicon Nitride) - Phillip",
+    "Si": "Si (Silicon) - Palik",
+    "SiO2": "SiO2 (Glass) - Palik",
+    "SiN": "Si3N4 (Silicon Nitride) - Phillip",
 }
 
 
@@ -37,7 +37,7 @@ class SimulationSettingsLumericalFdtd(BaseModel):
         field_profile_samples: number of wavelengths to compute field profile.
     """
 
-    background_material: str = "sio2"
+    background_material: str = "SiO2"
     port_margin: float = 1.5
     port_extension: float = 5.0
     mesh_accuracy: int = 2
@@ -162,4 +162,4 @@ sin = partial(
 )
 
 
-materials_index = {"si": si, "sio2": sio2, "sin": sin}
+materials_index = {"Si": si, "SiO2": sio2, "SiN": sin}

@@ -13,6 +13,7 @@ from gpdk import (
     tech,
 )
 from gpdk.config import PATH
+from gpdk.material_cards import MATERIAL_CARDS
 from gpdk.models import get_models
 from gpdk.routing_strategies import routing_strategies
 from gpdk.simulation_settings import materials_index
@@ -36,7 +37,7 @@ _cells = {name: cell for name, cell in _cells.items() if name not in _containers
 @lru_cache
 def get_pdk() -> Pdk:
     """Return the generic PDK."""
-    return Pdk(
+    pdk = Pdk(
         name="gpdk",
         version=__version__,
         cells=_cells,
@@ -52,6 +53,8 @@ def get_pdk() -> Pdk:
         routing_strategies=routing_strategies,
         models=get_models(),
     )
+    object.__setattr__(pdk, "material_cards", MATERIAL_CARDS)
+    return pdk
 
 
 def activate_pdk() -> None:
@@ -65,6 +68,7 @@ __all__ = [
     "LAYER",
     "LAYER_STACK",
     "LAYER_VIEWS",
+    "MATERIAL_CARDS",
     "PATH",
     "PDK",
     "activate_pdk",
