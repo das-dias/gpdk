@@ -1,9 +1,12 @@
 """Generic PDK for gdsfactory."""
 
 from functools import lru_cache
+from typing import Any
 
 from gdsfactory.get_factories import get_cells
 from gdsfactory.pdk import Pdk
+from pdk_schema import MaterialCard
+from pydantic import TypeAdapter
 
 from gpdk import (
     _schematic,  # noqa: F401  # registers cell metadata annotations
@@ -13,6 +16,7 @@ from gpdk import (
     tech,
 )
 from gpdk.config import PATH
+from gpdk.material_cards import MATERIAL_CARDS
 from gpdk.models import get_models
 from gpdk.routing_strategies import routing_strategies
 from gpdk.simulation_settings import materials_index
@@ -33,10 +37,25 @@ _containers = get_cells([cells.containers])
 _cells = {name: cell for name, cell in _cells.items() if name not in _containers}
 
 
+_material_cards_adapter = TypeAdapter(dict[str, MaterialCard])
+
+
+class _MaterialCardPdk(Pdk):
+    """Declare project material cards on the pinned gdsfactory PDK."""
+
+    material_cards: dict[str, MaterialCard]
+
+    def __init__(self, *, material_cards: dict[str, MaterialCard], **data: Any) -> None:
+        # gdsfactory 9.51 constructs the base Pdk explicitly in its initializer.
+        # Validate and assign the subclass field separately so it is serialized.
+        super().__init__(**data)
+        self.material_cards = _material_cards_adapter.validate_python(material_cards)
+
+
 @lru_cache
-def get_pdk() -> Pdk:
+def get_pdk() -> _MaterialCardPdk:
     """Return the generic PDK."""
-    return Pdk(
+    return _MaterialCardPdk(
         name="gpdk",
         version=__version__,
         cells=_cells,
@@ -47,6 +66,7 @@ def get_pdk() -> Pdk:
         layer_views=LAYER_VIEWS,
         layer_transitions=layer_transitions,
         materials_index=materials_index,
+        material_cards=MATERIAL_CARDS,
         constants=GenericConstants(),
         connectivity=LAYER_CONNECTIVITY,
         routing_strategies=routing_strategies,
@@ -65,6 +85,7 @@ __all__ = [
     "LAYER",
     "LAYER_STACK",
     "LAYER_VIEWS",
+    "MATERIAL_CARDS",
     "PATH",
     "PDK",
     "activate_pdk",
