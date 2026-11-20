@@ -27,7 +27,13 @@ See `make cells-check` and `make cells-regen`.
 
 The layer stack uses canonical material names (for example, `Si`, `SiO2`, and
 `SiN`). Use those names for explicit solver overrides. The index and Lumerical
-lookup dictionaries also accept the old `si`, `sio2`, and `sin` keys.
+lookup dictionaries also accept the old `si`, `sio2`, and `sin` keys. The
+gplugins 2.1.5 Tidy3D, FEMwell, and Lumerical mappings recognize the canonical
+optical keys. For FDTDZ or other lowercase-only maps, provide a mapping keyed
+by the actual stack tokens (for example, `material_name_to_index` in FDTDZ).
+Custom maps should also account for `Ge`, `Air`, and `Al` replacing `ge`, `air`,
+and `Aluminum` where those layers are in scope; not all optical solvers have
+models for every layer.
 
 The project silicon card used by gsim is valid from 1.357 to 11.04 µm. This is
 not an O-band material model. A material name in the stack does not guarantee
