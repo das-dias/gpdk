@@ -75,6 +75,10 @@ M3: LayerKey = (LAYER.M3.layer, LAYER.M3.datatype)
 # kfactory requires even widths in dbu: generated PCells snap their parameters to this grid
 PARAMETER_GRID = 0.002
 
+# The PCell fit lands within a grid step of the drawn value (gap 0.1996 for 0.2), which gflvs's default relative
+# parameter tolerance (1e-3) rejects. 1 % accepts every fit and still rejects a drawn value that differs by more.
+PARAMETER_RELATIVE_TOLERANCE = 0.01
+
 # Cell-name prefixes, lowercase (gflvs lowercases the cell name before matching): they include the first
 # parameter letter of the routing cells' generated names (``straight_L10_...``, ``bend_euler_RNone_...``) so that
 # the devices sharing the function-name prefix are not swallowed: ``straight_heater_*``, ``straight_pn*``,
@@ -176,6 +180,7 @@ DEVICE_TEMPLATES: list[DeviceTemplate] = [
 def build_lvs_config() -> LvsConfig:
     """Build the gpdk LvsConfig."""
     return LvsConfig(
+        parameter_relative_tolerance=PARAMETER_RELATIVE_TOLERANCE,
         device_templates=DEVICE_TEMPLATES,
         netlist_tracer_config=NetlistTracerConfig(
             galvanic_drawing_layers=frozenset({M3}),

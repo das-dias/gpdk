@@ -132,6 +132,37 @@ def test_parameters_are_compared(tmp_path: Path) -> None:
     assert "LVS/parameter_mismatch" in {item.category for item in report.items}
 
 
+@pytest.mark.parametrize(
+    ("reference_gap", "clean"), [(0.2, True), (0.25, False)], ids=["drawn", "other"]
+)
+def test_coupler_parameters_pass_or_fail_at_the_shipped_tolerance(
+    reference_gap: float, clean: bool, tmp_path: Path
+) -> None:
+    """The default config passes the coupler its own fit (gap 0.1996 for 0.2) and fails a clearly different gap."""
+    top = gf.Component(f"coupler_tolerance_{round(reference_gap * 100)}_top")
+    top.add_ref(cells.coupler(gap=0.2, length=10.0))
+    reference = morphnet.Netlist(name=top.name, top_circuit=top.name)
+    circuit = morphnet.circuit(top.name)
+    circuit.add(
+        morphnet.subcircuit(
+            "coupler",
+            "coupler",
+            class_name="coupler",
+            parameters=[("gap", reference_gap), ("length", 10.0)],
+        )
+    )
+    reference.add(circuit)
+    ok, _, _, report = gflvs.lvs(
+        reference,
+        library_of(top, tmp_path),
+        DEFAULT_LVS_CONFIG,
+        topcell=top.name,
+    )
+    categories = {item.category for item in report.items}
+    assert ok is clean
+    assert ("LVS/parameter_mismatch" in categories) is (not clean)
+
+
 def test_routing_cells_are_passthrough(tmp_path: Path) -> None:
     """Routing cells are nets: none of them is extracted as a device."""
     top = gf.Component("routing_cells_top")
