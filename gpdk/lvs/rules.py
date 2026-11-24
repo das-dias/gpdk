@@ -16,9 +16,19 @@ What is recognised:
 * ``pad``: an electrical device, its ``e1``..``e4`` ports being one terminal, as the pad is one polygon on
   ``M3``. A ``pad_array`` is not a device: it places ``pad`` cells, each one extracted as a ``pad``.
 * ``coupler`` and ``mmi1x2``: waveguide devices, fitted to the gpdk PCell (parameters compared, never skipped).
-* ``straight``, ``bend_euler``, ``taper`` and ``wire_corner`` cells are passthrough: the routing cells of
-  optical and electrical routes (``wire_corner`` is the electrical bend, ``taper_electrical`` an electrical
-  ``taper``). So is ``rectangle``, see below.
+* Passthrough cells (``PASSTHROUGH_DEVICE_CLASS_NAMES``): the routing cells of optical and electrical routes
+  and the ``rectangle`` metal, see below. gflvs matches these as lowercase cell-name *prefixes*, so each one
+  includes the first letter of the generated parameter suffix to leave the devices that share a function-name
+  prefix out. Passthrough: ``straight_L*``, ``bend_euler_R*``, ``taper_L*``, ``taper_electrical_L*``,
+  ``wire_corner_CS*`` and ``rectangle_S*``. Not passthrough: ``straight_heater_*``, ``straight_pn*``,
+  ``straight_pin*``, ``straight_all_angle``, ``straight_array``, ``bend_euler_s``, ``bend_euler180``,
+  ``taper_adiabatic``, ``taper_strip_to_*``, ``wire_corner45``, ``wire_corner_sections``,
+  ``rectangle_with_slits`` and ``rectangles``.
+
+Scope caveats of the passthrough, to carry into the spec: any ``straight_L*``/``bend_euler_R*``/``taper_L*`` cell
+is a net whatever its layers, and every ``taper_electrical`` and ``rectangle`` is too, so a ``rectangle`` drawn on
+``WG`` is a waveguide net element rather than a device. A device cell with a function name outside the list above
+is searched for devices, not skipped.
 
 Decisions, from the Elvis corpus (``coupler_test``, ``elec``, ``wire_crossing_yaml(_shorted)``):
 
@@ -65,13 +75,17 @@ M3: LayerKey = (LAYER.M3.layer, LAYER.M3.datatype)
 # kfactory requires even widths in dbu: generated PCells snap their parameters to this grid
 PARAMETER_GRID = 0.002
 
-# straight, bend_euler, taper_* and wire_corner_* cells are matched as a lowercase cell-name prefix
+# Cell-name prefixes, lowercase (gflvs lowercases the cell name before matching): they include the first
+# parameter letter of the routing cells' generated names (``straight_L10_...``, ``bend_euler_RNone_...``) so that
+# the devices sharing the function-name prefix are not swallowed: ``straight_heater_*``, ``straight_pn*``,
+# ``bend_euler_s``, ``taper_strip_to_ridge``, ``rectangle_with_slits``, ...
 PASSTHROUGH_DEVICE_CLASS_NAMES: tuple[str, ...] = (
-    "straight",
-    "bend_euler",
-    "taper",
-    "wire_corner",
-    "rectangle",
+    "straight_l",
+    "bend_euler_r",
+    "taper_l",
+    "taper_electrical_l",
+    "wire_corner_cs",
+    "rectangle_s",
 )
 
 

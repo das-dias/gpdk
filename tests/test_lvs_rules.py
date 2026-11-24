@@ -130,3 +130,42 @@ def test_parameters_are_compared(tmp_path: Path) -> None:
     )
     assert not ok
     assert "LVS/parameter_mismatch" in {item.category for item in report.items}
+
+
+def test_routing_cells_are_passthrough(tmp_path: Path) -> None:
+    """Routing cells are nets: none of them is extracted as a device."""
+    top = gf.Component("routing_cells_top")
+    for index, cell in enumerate(
+        (
+            cells.straight(length=10),
+            cells.bend_euler(),
+            cells.taper(),
+            cells.taper_electrical(),
+            cells.rectangle(layer="M3"),
+            cells.wire_corner(),
+        )
+    ):
+        top.add_ref(cell).move((index * 1000, 0))
+    assert extracted_devices(top, tmp_path) == {}
+
+
+@pytest.mark.parametrize(
+    "device_cell",
+    [
+        lambda: cells.straight_heater_metal(length=100),
+        lambda: cells.straight_heater_meander(),
+        lambda: cells.straight_heater_metal_undercut(),
+    ],
+    ids=[
+        "straight_heater_metal",
+        "straight_heater_meander",
+        "straight_heater_metal_undercut",
+    ],
+)
+def test_devices_named_like_routing_cells_are_not_passthrough(
+    device_cell, request: pytest.FixtureRequest, tmp_path: Path
+) -> None:
+    """A heater sharing the ``straight`` name prefix is searched for devices, not skipped."""
+    top = gf.Component(f"{request.node.callspec.id}_top")
+    top.add_ref(device_cell())
+    assert extracted_devices(top, tmp_path)
